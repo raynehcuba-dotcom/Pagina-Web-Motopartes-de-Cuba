@@ -1,32 +1,30 @@
-import React from 'react';
 import { Wrench, MessageCircle, Phone, MapPin, Clock, ShieldCheck } from 'lucide-react';
 import { MotorcycleModel } from '../types';
+import { Logo } from './Logo';
 
 interface FooterProps {
   onSelectModel: (model: MotorcycleModel) => void;
   onOpenWhatsAppGeneral: () => void;
+  onOpenInventoryManager?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectModel, onOpenWhatsAppGeneral }) => {
+export const Footer: React.FC<FooterProps> = ({
+  onSelectModel,
+  onOpenWhatsAppGeneral,
+  onOpenInventoryManager,
+}) => {
   return (
-    <footer id="contacto" className="border-t border-white/10 bg-[#08090c] text-slate-400 text-xs">
+    <footer id="contacto" className="border-t border-white/10 bg-[#07080b] text-slate-400 text-xs">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           
           {/* Brand & Description (Col 1 & 2) */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500">
-                <Wrench className="h-4 w-4" />
-              </div>
-              <div>
-                <span className="font-condensed text-xl font-bold uppercase text-white tracking-wider block">
-                  Motopartes de Cuba
-                </span>
-                <span className="text-[10px] font-mono text-amber-500 tracking-widest block -mt-1">
-                  S.R.L · MIPYME CUBANA
-                </span>
+            <div className="flex flex-col items-start gap-3">
+              <Logo size="lg" theme="dark" />
+              <div className="inline-flex items-center gap-1.5 rounded-md bg-red-600/15 border border-red-500/30 px-2.5 py-0.5 text-[10px] font-mono text-red-400 font-bold">
+                <span>MIPYME OFICIAL · LA HABANA, CUBA</span>
               </div>
             </div>
 
@@ -65,7 +63,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectModel, onOpenWhatsAppGen
                       const el = document.getElementById('catalogo');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="hover:text-amber-400 transition-colors"
+                    className="hover:text-red-400 transition-colors"
                   >
                     {m.label}
                   </button>
@@ -81,22 +79,22 @@ export const Footer: React.FC<FooterProps> = ({ onSelectModel, onOpenWhatsAppGen
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#encargo" className="hover:text-amber-400 transition-colors">
+                <a href="#encargo" className="hover:text-red-400 transition-colors">
                   Piezas por Encargo Especial
                 </a>
               </li>
               <li>
-                <a href="#envios" className="hover:text-amber-400 transition-colors">
+                <a href="#envios" className="hover:text-red-400 transition-colors">
                   Envíos a Provincias
                 </a>
               </li>
               <li>
-                <a href="#envios" className="hover:text-amber-400 transition-colors">
+                <a href="#envios" className="hover:text-red-400 transition-colors">
                   Recogida en Almacén Habana
                 </a>
               </li>
               <li>
-                <a href="#envios" className="hover:text-amber-400 transition-colors">
+                <a href="#envios" className="hover:text-red-400 transition-colors">
                   Pago Transfermóvil / EnZona
                 </a>
               </li>
@@ -110,11 +108,11 @@ export const Footer: React.FC<FooterProps> = ({ onSelectModel, onOpenWhatsAppGen
             </h4>
             <div className="space-y-2.5 font-mono text-slate-300">
               <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <MapPin className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
                 <span>La Habana, Cuba</span>
               </div>
               <div className="flex items-start gap-2">
-                <Clock className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <Clock className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
                 <span>Lun - Sáb: 8:30 AM - 5:30 PM</span>
               </div>
               <div className="flex items-start gap-2">
@@ -136,6 +134,15 @@ export const Footer: React.FC<FooterProps> = ({ onSelectModel, onOpenWhatsAppGen
           </div>
           <div className="flex items-center gap-4">
             <span>Comercializadora de Repuestos y Accesorios</span>
+            <span>·</span>
+            {onOpenInventoryManager && (
+              <button
+                onClick={onOpenInventoryManager}
+                className="text-amber-500 hover:text-amber-400 hover:underline flex items-center gap-1"
+              >
+                <span>Gestión de Inventario BD</span>
+              </button>
+            )}
             <span>·</span>
             <span>Hecho para Cuba</span>
           </div>

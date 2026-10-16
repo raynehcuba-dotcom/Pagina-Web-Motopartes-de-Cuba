@@ -1,0 +1,77 @@
+<svg viewBox="0 0 250 150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="redMotorcycleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#f43f5e" />
+      <stop offset="35%" stopColor="#e11d48" />
+      <stop offset="80%" stopColor="#dc2626" />
+      <stop offset="100%" stopColor="#b91c1c" />
+    </linearGradient>
+    <radialGradient id="rotorGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#f8fafc" />
+      <stop offset="60%" stopColor="#cbd5e1" />
+      <stop offset="100%" stopColor="#64748b" />
+    </radialGradient>
+    <radialGradient id="tireGrad" cx="45%" cy="45%" r="55%">
+      <stop offset="70%" stopColor="#1e222d" />
+      <stop offset="100%" stopColor="#090a0f" />
+    </radialGradient>
+  </defs>
+
+  <!-- Red Racing Motorcycle Silhouette -->
+  <g id="motorcycle-fairing" fill="url(#redMotorcycleGrad)">
+    <path d="M 104 22 C 114 6 126 2 134 4 C 131 9 127 15 125 21 Z" opacity="0.9" />
+    <path d="M 125 21 C 133 16 142 15 152 18 C 161 21 168 20 178 17 C 188 14 195 19 203 26 C 214 24 226 21 232 23 C 225 27 218 31 209 35 C 204 38 198 39 191 38 C 183 37 175 35 168 36 C 160 37 155 42 148 48 C 138 56 128 66 125 76 C 123 68 122 55 118 46 C 114 36 109 29 97 34 C 92 36 86 44 87 53 C 88 61 93 72 96 82 C 90 70 85 58 88 47 C 90 38 97 29 107 24 Z" />
+    <path d="M 115 48 C 122 43 131 42 140 44 C 134 52 127 62 121 72 C 117 62 115 54 115 48 Z" />
+    <path d="M 183 39 L 197 45 L 209 52 L 218 48 L 205 41 Z" />
+  </g>
+
+  <!-- Forks and Struts -->
+  <line x1="126" y1="22" x2="97" y2="63" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.9" />
+  <line x1="168" y1="38" x2="204" y2="54" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.9" />
+
+  <!-- Letters MOTO -->
+  <g id="letters-moto">
+    <path d="M 10 98 L 10 46 L 26 46 L 41 78 L 55 46 L 71 46 L 71 98 L 56 98 L 56 68 L 43 95 L 38 95 L 25 68 L 25 98 Z" fill="#ffffff" />
+    
+    <!-- Front Wheel "O" -->
+    <g transform="translate(101, 72)">
+      <circle cx="0" cy="0" r="26" fill="url(#tireGrad)" stroke="#dc2626" stroke-width="2.5" />
+      <circle cx="0" cy="0" r="21" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="3,2" opacity="0.4" />
+      <circle cx="0" cy="0" r="14" fill="#0c0e12" />
+      <circle cx="0" cy="0" r="10" fill="none" stroke="url(#rotorGrad)" stroke-width="4" />
+      <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+      <circle cx="10" cy="0" r="1.4" fill="#0c0e12" />
+      <circle cx="-10" cy="0" r="1.4" fill="#0c0e12" />
+      <circle cx="0" cy="10" r="1.4" fill="#0c0e12" />
+      <circle cx="0" cy="-10" r="1.4" fill="#0c0e12" />
+      <circle cx="7" cy="7" r="1.4" fill="#0c0e12" />
+      <circle cx="-7" cy="7" r="1.4" fill="#0c0e12" />
+      <circle cx="7" cy="-7" r="1.4" fill="#0c0e12" />
+      <circle cx="-7" cy="-7" r="1.4" fill="#0c0e12" />
+    </g>
+
+    <!-- Center "T" -->
+    <path d="M 137 46 L 173 46 L 173 60 L 161 60 L 161 98 L 149 98 L 149 60 L 137 60 Z" fill="#ffffff" />
+
+    <!-- Rear Wheel "O" -->
+    <g transform="translate(214, 72)">
+      <circle cx="0" cy="0" r="26" fill="url(#tireGrad)" stroke="#dc2626" stroke-width="2.5" />
+      <circle cx="0" cy="0" r="21" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="3,2" opacity="0.4" />
+      <circle cx="0" cy="0" r="14" fill="#0c0e12" />
+      <circle cx="0" cy="0" r="10" fill="none" stroke="url(#rotorGrad)" stroke-width="4" />
+      <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+      <circle cx="10" cy="0" r="1.4" fill="#0c0e12" />
+      <circle cx="-10" cy="0" r="1.4" fill="#0c0e12" />
+      <circle cx="0" cy="10" r="1.4" fill="#0c0e12" />
+      <circle cx="0" cy="-10" r="1.4" fill="#0c0e12" />
+      <circle cx="7" cy="7" r="1.4" fill="#0c0e12" />
+      <circle cx="-7" cy="7" r="1.4" fill="#0c0e12" />
+      <circle cx="7" cy="-7" r="1.4" fill="#0c0e12" />
+      <circle cx="-7" cy="-7" r="1.4" fill="#0c0e12" />
+    </g>
+  </g>
+
+  <!-- Word PARTES -->
+  <text x="125" y="136" text-anchor="middle" font-family="Impact, 'Barlow Condensed', sans-serif" font-size="34" font-weight="900" letter-spacing="3.5" fill="rgba(0,0,0,0.5)">PARTES</text>
+  <text x="125" y="134" text-anchor="middle" font-family="Impact, 'Barlow Condensed', sans-serif" font-size="34" font-weight="900" letter-spacing="3.5" fill="#ffffff">PARTES</text>
+</svg>

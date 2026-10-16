@@ -91,7 +91,7 @@ export const Catalog: React.FC<CatalogProps> = ({
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-white/10 mb-8">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase text-amber-500 tracking-wider">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-red-500 tracking-wider">
               <Sparkles className="h-3.5 w-3.5" />
               <span>Inventario Disponible en Almacén</span>
             </div>
@@ -101,7 +101,7 @@ export const Catalog: React.FC<CatalogProps> = ({
           </div>
 
           {/* Model Selector Tabs (clean segmented button tabs) */}
-          <div className="flex items-center gap-1.5 p-1 bg-[#151820] border border-white/10 rounded-xl overflow-x-auto max-w-full">
+          <div className="flex items-center gap-1.5 p-1 bg-[#141720] border border-white/10 rounded-xl overflow-x-auto max-w-full">
             {MODELOS_MOTO.map((m) => {
               const isActive = activeModel === m.id;
               return (
@@ -110,7 +110,7 @@ export const Catalog: React.FC<CatalogProps> = ({
                   onClick={() => onSelectModel(m.id as MotorcycleModel)}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap shrink-0 font-mono ${
                     isActive
-                      ? 'bg-amber-500 text-black shadow-md'
+                      ? 'bg-red-600 text-white shadow-md shadow-red-600/30 font-bold'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -142,7 +142,7 @@ export const Catalog: React.FC<CatalogProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por pieza, modelo (MZ, GN, AX...), código o medida..."
-              className="w-full rounded-xl border border-white/10 bg-[#161921] pl-10 pr-9 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+              className="w-full rounded-xl border border-white/10 bg-[#161921] pl-10 pr-9 py-2.5 text-sm text-white placeholder-slate-500 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors"
             />
             {searchQuery && (
               <button
@@ -161,7 +161,7 @@ export const Catalog: React.FC<CatalogProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="rounded-xl border border-white/10 bg-[#161921] px-3 py-2.5 text-xs font-mono text-slate-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="rounded-xl border border-white/10 bg-[#161921] px-3 py-2.5 text-xs font-mono text-slate-200 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
             >
               <option value="featured">Destacados & Disponibles</option>
               <option value="price-asc">Menor precio</option>
@@ -182,7 +182,7 @@ export const Catalog: React.FC<CatalogProps> = ({
                 onClick={() => setSelectedCategory(cat.id as Category)}
                 className={`rounded-lg px-3.5 py-1.5 text-xs font-medium whitespace-nowrap transition-all border ${
                   isCatActive
-                    ? 'border-amber-500/80 bg-amber-500/15 text-amber-300 font-semibold'
+                    ? 'border-red-500/80 bg-red-600/15 text-red-300 font-bold'
                     : 'border-white/5 bg-[#14171f] text-slate-400 hover:border-white/20 hover:text-white'
                 }`}
               >
@@ -197,14 +197,14 @@ export const Catalog: React.FC<CatalogProps> = ({
           <div>
             Mostrando <span className="font-bold text-white tabular-nums">{filteredRepuestos.length}</span> repuestos encontrados
             {activeModel !== 'all' && (
-              <> para <span className="text-amber-400 font-semibold">{activeModel}</span></>
+              <> para <span className="text-red-400 font-semibold">{activeModel}</span></>
             )}
           </div>
 
           {hasActiveFilters && (
             <button
               onClick={handleResetFilters}
-              className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 underline underline-offset-4"
+              className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 underline underline-offset-4"
             >
               <X className="h-3 w-3" />
               <span>Limpiar filtros</span>
@@ -247,7 +247,7 @@ export const Catalog: React.FC<CatalogProps> = ({
               </button>
               <a
                 href="#encargo"
-                className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-mono font-bold text-black hover:bg-amber-400 transition-colors"
+                className="rounded-lg bg-red-600 px-4 py-2 text-xs font-mono font-bold text-white hover:bg-red-500 transition-colors shadow-lg shadow-red-600/30"
               >
                 Solicitar pieza por encargo
               </a>

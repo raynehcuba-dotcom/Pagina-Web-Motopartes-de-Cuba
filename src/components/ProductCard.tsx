@@ -27,8 +27,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div className={`group relative flex flex-col justify-between rounded-xl border transition-all duration-200 overflow-hidden shadow-md hover:shadow-xl ${
       isCompared
-        ? 'border-amber-500 bg-[#171b24] ring-1 ring-amber-500/30'
-        : 'border-white/10 bg-[#14171f] hover:border-amber-500/40 hover:bg-[#181c25]'
+        ? 'border-red-500 bg-[#171b24] ring-1 ring-red-500/30'
+        : 'border-white/10 bg-[#14171f] hover:border-red-500/40 hover:bg-[#181c25]'
     }`}>
       
       {/* Top Media Container */}
@@ -48,7 +48,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Code & Origin Tag */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between text-[11px] font-mono">
-          <span className="rounded bg-black/80 backdrop-blur-md px-2 py-0.5 text-amber-400 border border-white/10">
+          <span className="rounded bg-black/80 backdrop-blur-md px-2 py-0.5 text-red-400 font-bold border border-white/10">
             {repuesto.code}
           </span>
           <span className="rounded bg-black/70 backdrop-blur-md px-2 py-0.5 text-slate-300 border border-white/10 text-[10px]">
@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Stock Alert if low or special */}
         {isLowStock && (
-          <div className="absolute bottom-2.5 left-2.5 rounded bg-amber-500/90 text-black px-2 py-0.5 text-[10px] font-mono font-bold flex items-center gap-1 shadow">
+          <div className="absolute bottom-2.5 left-2.5 rounded bg-red-600 text-white px-2 py-0.5 text-[10px] font-mono font-bold flex items-center gap-1 shadow-md shadow-red-600/30">
             <AlertCircle className="h-3 w-3" />
             <span>ÚLTIMAS {repuesto.stockCount} UNIDADES</span>
           </div>
@@ -70,7 +70,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         
         {/* Category & Model Line */}
         <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-1.5">
-          <span className="text-amber-400 font-semibold">{repuesto.model}</span>
+          <span className="text-red-400 font-bold">{repuesto.model}</span>
           <span aria-hidden="true">·</span>
           <span className="truncate">{repuesto.categoryLabel}</span>
         </div>
@@ -78,7 +78,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Title */}
         <h3
           onClick={() => onOpenDetails(repuesto)}
-          className="text-base font-semibold text-white group-hover:text-amber-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
+          className="text-base font-semibold text-white group-hover:text-red-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
           title={repuesto.name}
         >
           {repuesto.name}
@@ -97,13 +97,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <div className="font-mono tabular-nums text-lg font-bold text-white">
               {currency === 'CUP' ? (
                 <>
-                  <span className="text-amber-400 text-sm">$</span>
+                  <span className="text-red-400 text-sm font-extrabold">$</span>
                   {repuesto.priceCUP.toLocaleString('es-ES')}{' '}
                   <span className="text-xs text-slate-400 font-normal">CUP</span>
                 </>
               ) : (
                 <>
-                  <span className="text-emerald-400 text-sm">$</span>
+                  <span className="text-emerald-400 text-sm font-extrabold">$</span>
                   {repuesto.priceUSD.toFixed(2)}{' '}
                   <span className="text-xs text-slate-400 font-normal">USD</span>
                 </>
@@ -124,8 +124,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               onClick={() => onToggleCompare(repuesto.id)}
               className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
                 isCompared
-                  ? 'border-amber-500 bg-amber-500 text-black shadow-md'
-                  : 'border-white/10 bg-white/5 text-slate-400 hover:text-amber-400 hover:border-amber-500/40'
+                  ? 'border-red-500 bg-red-600 text-white shadow-md shadow-red-600/30'
+                  : 'border-white/10 bg-white/5 text-slate-400 hover:text-red-400 hover:border-red-500/40'
               }`}
               title={isCompared ? 'Quitar del comparador' : 'Añadir al comparador (hasta 3)'}
               aria-label="Comparar repuesto"
@@ -149,7 +149,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               className={`flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold font-mono uppercase transition-all ${
                 isInCart
                   ? 'bg-emerald-500 text-black hover:bg-emerald-400'
-                  : 'bg-amber-500 text-black hover:bg-amber-400 active:scale-95'
+                  : 'bg-red-600 text-white hover:bg-red-500 active:scale-95 shadow-md shadow-red-600/20'
               }`}
               title="Añadir al pedido WhatsApp"
             >

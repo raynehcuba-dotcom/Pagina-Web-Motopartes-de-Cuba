@@ -15,11 +15,25 @@ import { CartDrawer } from './components/CartDrawer';
 import { CustomOrderSection } from './components/CustomOrderSection';
 import { WarehouseDeliveryInfo } from './components/WarehouseDeliveryInfo';
 import { Footer } from './components/Footer';
+import { InventoryManagerModal } from './components/InventoryManagerModal';
 import { REPUESTOS } from './data/repuestos';
 import { Repuesto, CartItem, MotorcycleModel, Currency } from './types';
 import { ShoppingBag, Check, MessageCircle, Scale } from 'lucide-react';
+import {
+  subscribeToRepuestos,
+  seedInitialCatalogIfEmpty,
+  testConnection,
+  auth,
+} from './lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 export default function App() {
+  // State: Repuestos catalog (initialized with authentic data, updated live from Firestore)
+  const [repuestos, setRepuestos] = useState<Repuesto[]>(REPUESTOS);
+  const [isDbConnected, setIsDbConnected] = useState<boolean>(true);
+  const [isInventoryModalOpen, setIsInventoryModalOpen] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
   // State: Cart with localStorage persistence
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
@@ -63,6 +77,39 @@ export default function App() {
     }
   });
 
+  // Real-time Firestore synchronization & boot connection test
+  useEffect(() => {
+    testConnection()
+      .then((connected) => {
+        setIsDbConnected(connected);
+        if (connected) {
+          seedInitialCatalogIfEmpty();
+        }
+      })
+      .catch(() => setIsDbConnected(false));
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+
+    const unsubscribeRepuestos = subscribeToRepuestos(
+      (liveItems) => {
+        if (liveItems && liveItems.length > 0) {
+          setRepuestos(liveItems);
+          setIsDbConnected(true);
+        }
+      },
+      (err) => {
+        console.warn('Real-time listener notice:', err);
+      }
+    );
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeRepuestos();
+    };
+  }, []);
+
   // Track product view (add to top of recent, keep max 5 unique)
   const trackProductView = (id: string) => {
     setRecentProductIds((prev) => {
@@ -101,7 +148,7 @@ export default function App() {
         showToast('Máximo 3 repuestos para comparar. Quita una pieza primero.');
         return prev;
       }
-      const item = REPUESTOS.find((r) => r.id === id);
+      const item = repuestos.find((r) => r.id === id);
       showToast(`"${item?.name || 'Pieza'}" añadida al comparador (${prev.length + 1}/3).`);
       return [...prev, id];
     });
@@ -207,22 +254,24 @@ export default function App() {
 
   // Resolved compared parts
   const comparedRepuestos = comparedItemIds
-    .map((id) => REPUESTOS.find((r) => r.id === id))
+    .map((id) => repuestos.find((r) => r.id === id))
     .filter(Boolean) as Repuesto[];
 
   return (
     <div className="min-h-screen bg-[#0c0e12] text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black">
       
-      {/* Top Navbar with Predictive Real-Time Search */}
+      {/* Top Navbar with Predictive Real-Time Search & DB Manager */}
       <Navbar
         cartCount={totalItemsCount}
         onOpenCart={() => setIsCartOpen(true)}
         currency={currency}
         onToggleCurrency={handleToggleCurrency}
         exchangeRate={exchangeRate}
-        repuestos={REPUESTOS}
+        repuestos={repuestos}
         activeModel={activeModel}
         onSelectRepuesto={handleOpenDetails}
+        onOpenInventoryManager={() => setIsInventoryModalOpen(true)}
+        isDbConnected={isDbConnected}
       />
 
       {/* Main Content */}
@@ -242,12 +291,12 @@ export default function App() {
         {/* Interactive Catalog with Filters, Search and Comparison */}
         {(() => {
           const recentRepuestos = recentProductIds
-            .map((id) => REPUESTOS.find((r) => r.id === id))
+            .map((id) => repuestos.find((r) => r.id === id))
             .filter(Boolean) as Repuesto[];
 
           return (
             <Catalog
-              repuestos={REPUESTOS}
+              repuestos={repuestos}
               activeModel={activeModel}
               onSelectModel={setActiveModel}
               currency={currency}
@@ -273,6 +322,7 @@ export default function App() {
       <Footer
         onSelectModel={setActiveModel}
         onOpenWhatsAppGeneral={handleOpenWhatsAppGeneral}
+        onOpenInventoryManager={() => setIsInventoryModalOpen(true)}
       />
 
       {/* Product Detail Modal */}
@@ -296,6 +346,15 @@ export default function App() {
         onRemoveCompareItem={handleRemoveCompareItem}
         onClearCompare={handleClearCompare}
         cartItemIds={cartItemIds}
+      />
+
+      {/* Real-time Inventory & Catalog Database Management Modal */}
+      <InventoryManagerModal
+        isOpen={isInventoryModalOpen}
+        onClose={() => setIsInventoryModalOpen(false)}
+        repuestos={repuestos}
+        currentUser={currentUser}
+        onToast={showToast}
       />
 
       {/* Sticky Bottom Compare Bar when items are selected */}

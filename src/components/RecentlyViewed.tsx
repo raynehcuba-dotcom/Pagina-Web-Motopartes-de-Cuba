@@ -26,7 +26,7 @@ export const RecentlyViewed: React.FC<RecentlyViewedProps> = ({
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-600/10 border border-red-500/30 text-red-500">
             <Clock className="h-4 w-4" />
           </div>
           <div>
@@ -57,7 +57,7 @@ export const RecentlyViewed: React.FC<RecentlyViewedProps> = ({
           return (
             <div
               key={repuesto.id}
-              className="group relative flex flex-col justify-between rounded-xl border border-white/10 bg-[#0e1017] hover:border-amber-500/40 hover:bg-[#161a23] transition-all p-3"
+              className="group relative flex flex-col justify-between rounded-xl border border-white/10 bg-[#0e1017] hover:border-red-500/40 hover:bg-[#161a23] transition-all p-3"
             >
               <div>
                 {/* Thumbnail Image */}
@@ -71,7 +71,7 @@ export const RecentlyViewed: React.FC<RecentlyViewedProps> = ({
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                   />
-                  <span className="absolute bottom-1.5 left-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[9px] font-mono font-bold text-amber-400 border border-white/10">
+                  <span className="absolute bottom-1.5 left-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[9px] font-mono font-bold text-red-400 border border-white/10">
                     {repuesto.model}
                   </span>
                 </div>
@@ -79,7 +79,7 @@ export const RecentlyViewed: React.FC<RecentlyViewedProps> = ({
                 {/* Title */}
                 <h4
                   onClick={() => onOpenDetails(repuesto)}
-                  className="text-xs font-semibold text-white group-hover:text-amber-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
+                  className="text-xs font-semibold text-white group-hover:text-red-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
                   title={repuesto.name}
                 >
                   {repuesto.name}
@@ -94,12 +94,12 @@ export const RecentlyViewed: React.FC<RecentlyViewedProps> = ({
               <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between gap-1.5">
                 <div className="font-mono tabular-nums text-xs font-bold text-white">
                   {currency === 'CUP' ? (
-                    <span className="text-amber-400">
+                    <span className="text-red-400 font-bold">
                       ${repuesto.priceCUP.toLocaleString('es-ES')}{' '}
                       <span className="text-[10px] font-normal text-slate-400">CUP</span>
                     </span>
                   ) : (
-                    <span className="text-emerald-400">
+                    <span className="text-emerald-400 font-bold">
                       ${repuesto.priceUSD.toFixed(2)}{' '}
                       <span className="text-[10px] font-normal text-slate-400">USD</span>
                     </span>
@@ -120,7 +120,7 @@ export const RecentlyViewed: React.FC<RecentlyViewedProps> = ({
                     className={`flex h-7 items-center gap-1 rounded px-2 text-[10px] font-mono font-bold uppercase transition-all ${
                       isInCart
                         ? 'bg-emerald-500 text-black'
-                        : 'bg-amber-500 text-black hover:bg-amber-400 active:scale-95'
+                        : 'bg-red-600 text-white hover:bg-red-500 active:scale-95 shadow-md shadow-red-600/20'
                     }`}
                     title="Añadir al pedido"
                   >

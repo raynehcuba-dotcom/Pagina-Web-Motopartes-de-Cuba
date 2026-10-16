@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access unless explicitly granted
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == 'raynehcuba@gmail.com' && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isValidRepuesto(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.code is string && data.code.size() > 0 && data.code.size() <= 50 &&
+             data.model in ['MZ', 'GN125', 'AX100', 'Karpaty', 'Universal'] &&
+             data.category in ['motor', 'transmision', 'electrico', 'carburacion', 'frenos', 'suspension', 'accesorios'] &&
+             data.priceCUP is number && data.priceCUP >= 0 &&
+             data.priceUSD is number && data.priceUSD >= 0 &&
+             data.stock in ['disponible', 'bajo_stock', 'encargo'] &&
+             data.stockCount is number && data.stockCount >= 0;
+    }
+
+    function isValidCustomOrder(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.model is string && data.model.size() > 0 && data.model.size() <= 100 &&
+             data.partName is string && data.partName.size() > 0 && data.partName.size() <= 200 &&
+             data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 150 &&
+             data.customerPhone is string && data.customerPhone.size() > 0 && data.customerPhone.size() <= 50;
+    }
+
+    // Catalog collection: public read for store customers, admin write
+    match /repuestos/{repuestoId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidId(repuestoId) && isValidRepuesto(request.resource.data);
+      allow update: if isAdmin() && isValidId(repuestoId) && isValidRepuesto(request.resource.data) && request.resource.data.id == resource.data.id;
+      allow delete: if isAdmin() && isValidId(repuestoId);
+    }
+
+    // Admins collection: restricted to authenticated administrators
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Custom part orders: customers can submit orders; admins manage and process
+    match /custom_orders/{orderId} {
+      allow create: if isValidId(orderId) && isValidCustomOrder(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

@@ -1,7 +1,8 @@
 import React from 'react';
-import { ShoppingBag, Wrench } from 'lucide-react';
+import { ShoppingBag, Database } from 'lucide-react';
 import { Repuesto, MotorcycleModel, Currency } from '../types';
 import { NavbarSearch } from './NavbarSearch';
+import { Logo } from './Logo';
 
 interface NavbarProps {
   cartCount: number;
@@ -12,6 +13,8 @@ interface NavbarProps {
   repuestos: Repuesto[];
   activeModel: MotorcycleModel;
   onSelectRepuesto: (repuesto: Repuesto) => void;
+  onOpenInventoryManager?: () => void;
+  isDbConnected?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,22 +26,22 @@ export const Navbar: React.FC<NavbarProps> = ({
   repuestos,
   activeModel,
   onSelectRepuesto,
+  onOpenInventoryManager,
+  isDbConnected = true,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#0c0e12]/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#0a0c10]/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 lg:gap-8 px-4 sm:px-6 lg:px-8">
         
-        {/* Zone 1: Wordmark Brand */}
-        <a href="#" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 group-hover:bg-amber-500 group-hover:text-black transition-colors">
-            <Wrench className="h-5 w-5" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-condensed text-xl font-bold tracking-wider text-white uppercase whitespace-nowrap">
-              Motopartes de Cuba
+        {/* Zone 1: Official Brand Logo */}
+        <a href="#" className="flex items-center gap-3 shrink-0 group py-1" aria-label="Motopartes de Cuba Home">
+          <Logo size="md" theme="dark" className="group-hover:scale-105 transition-transform" />
+          <div className="hidden sm:flex flex-col border-l border-white/15 pl-2.5">
+            <span className="font-condensed text-xs font-extrabold uppercase tracking-widest text-white leading-none">
+              Motopartes
             </span>
-            <span className="text-[10px] tracking-widest text-amber-400 font-mono -mt-1 hidden sm:block">
-              S.R.L · REPUESTOS DE MOTOS
+            <span className="text-[9px] tracking-widest text-red-400 font-mono font-bold mt-0.5">
+              S.R.L · CUBA
             </span>
           </div>
         </a>
@@ -55,35 +58,48 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Quick Nav Links on desktop */}
           <nav className="hidden xl:flex items-center gap-5 text-xs font-medium text-slate-300">
-            <a href="#catalogo" className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0">
+            <a href="#catalogo" className="hover:text-red-400 transition-colors whitespace-nowrap shrink-0">
               Catálogo
             </a>
-            <a href="#modelos" className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0">
+            <a href="#modelos" className="hover:text-red-400 transition-colors whitespace-nowrap shrink-0">
               Modelos
             </a>
-            <a href="#encargo" className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0">
+            <a href="#encargo" className="hover:text-red-400 transition-colors whitespace-nowrap shrink-0">
               Encargos
             </a>
-            <a href="#envios" className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0">
+            <a href="#envios" className="hover:text-red-400 transition-colors whitespace-nowrap shrink-0">
               Envíos & Pagos
             </a>
           </nav>
         </div>
 
-        {/* Zone 3: Actions (Currency Switcher & Cart) */}
+        {/* Zone 3: Actions (Inventory DB, Currency Switcher & Cart) */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Inventory Manager Live Trigger */}
+          {onOpenInventoryManager && (
+            <button
+              onClick={onOpenInventoryManager}
+              className="hidden md:flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-950/30 px-2.5 py-1.5 text-xs font-mono font-medium text-red-300 hover:bg-red-900/40 hover:border-red-500/50 transition-colors"
+              title="Base de Datos Firestore en vivo. Clic para gestionar stock y precios"
+            >
+              <Database className="h-3.5 w-3.5 text-red-400" />
+              <span className="hidden lg:inline">Inventario BD</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            </button>
+          )}
+
           {/* Currency Toggle */}
           <button
             onClick={onToggleCurrency}
-            className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#16191f] px-2.5 py-1.5 text-xs font-mono font-medium text-slate-300 hover:border-amber-500/40 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#141720] px-2.5 py-1.5 text-xs font-mono font-medium text-slate-300 hover:border-red-500/40 hover:text-white transition-colors"
             title={`Tasa: 1 USD = ${exchangeRate} CUP. Clic para alternar`}
           >
             <span className="text-slate-500 hidden sm:inline">Moneda:</span>
-            <span className={`px-1 py-0.5 rounded text-[11px] font-bold ${currency === 'CUP' ? 'bg-amber-500 text-black' : 'text-slate-400'}`}>
+            <span className={`px-1 py-0.5 rounded text-[11px] font-bold ${currency === 'CUP' ? 'bg-red-600 text-white' : 'text-slate-400'}`}>
               CUP
             </span>
             <span className="text-slate-600">/</span>
-            <span className={`px-1 py-0.5 rounded text-[11px] font-bold ${currency === 'USD' ? 'bg-amber-500 text-black' : 'text-slate-400'}`}>
+            <span className={`px-1 py-0.5 rounded text-[11px] font-bold ${currency === 'USD' ? 'bg-red-600 text-white' : 'text-slate-400'}`}>
               USD
             </span>
           </button>
@@ -91,13 +107,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Cart Button */}
           <button
             onClick={onOpenCart}
-            className="relative flex items-center gap-2 rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-black hover:bg-amber-400 active:scale-95 transition-all whitespace-nowrap shadow-lg shadow-amber-500/20"
+            className="relative flex items-center gap-2 rounded-lg bg-red-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-red-500 active:scale-95 transition-all whitespace-nowrap shadow-lg shadow-red-600/30"
             aria-label="Ver carrito y cotizador"
           >
             <ShoppingBag className="h-4 w-4" />
             <span className="hidden sm:inline">Pedido</span>
             {cartCount > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-[11px] font-bold text-amber-400 font-mono">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[11px] font-extrabold text-red-600 font-mono shadow">
                 {cartCount}
               </span>
             )}

@@ -65,7 +65,7 @@ export const ModelShowcase: React.FC<ModelShowcaseProps> = ({
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
           <div>
-            <span className="text-xs font-mono uppercase tracking-widest text-amber-500 font-semibold">
+            <span className="text-xs font-mono uppercase tracking-widest text-red-500 font-bold">
               Especialización por Modelo
             </span>
             <h2 className="font-condensed text-3xl sm:text-4xl font-extrabold uppercase text-white mt-1">
@@ -93,14 +93,14 @@ export const ModelShowcase: React.FC<ModelShowcaseProps> = ({
                 }}
                 className={`group relative rounded-xl border p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${
                   isSelected
-                    ? 'bg-[#181d25] border-amber-500 ring-2 ring-amber-500/20 shadow-xl'
-                    : 'bg-[#14171e] border-white/10 hover:border-white/20 hover:bg-[#181c24]'
+                    ? 'bg-[#181d25] border-red-500 ring-2 ring-red-500/20 shadow-xl'
+                    : 'bg-[#14171e] border-white/10 hover:border-red-500/40 hover:bg-[#181c24]'
                 }`}
               >
                 <div>
                   {/* Top Bar inside card */}
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-amber-400 group-hover:scale-105 transition-transform">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-red-500 group-hover:scale-105 group-hover:bg-red-600/10 transition-transform">
                       <Icon className="h-5 w-5" />
                     </div>
                     <span className="text-[11px] font-mono font-medium text-slate-400 border border-white/10 rounded px-2 py-0.5">
@@ -108,7 +108,7 @@ export const ModelShowcase: React.FC<ModelShowcaseProps> = ({
                     </span>
                   </div>
 
-                  <h3 className="font-condensed text-2xl font-bold uppercase tracking-wide text-white group-hover:text-amber-400 transition-colors">
+                  <h3 className="font-condensed text-2xl font-bold uppercase tracking-wide text-white group-hover:text-red-400 transition-colors">
                     {model.name}
                   </h3>
                   <div className="text-xs font-mono text-slate-400 mb-3">
@@ -129,7 +129,7 @@ export const ModelShowcase: React.FC<ModelShowcaseProps> = ({
                     <ul className="text-xs text-slate-300 space-y-1">
                       {model.popularParts.map((part, idx) => (
                         <li key={idx} className="flex items-center gap-1.5">
-                          <span className="h-1 w-1 rounded-full bg-amber-500/70" />
+                          <span className="h-1 w-1 rounded-full bg-red-500/80" />
                           <span className="truncate">{part}</span>
                         </li>
                       ))}
@@ -140,8 +140,8 @@ export const ModelShowcase: React.FC<ModelShowcaseProps> = ({
                   <button
                     className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold font-mono uppercase transition-colors ${
                       isSelected
-                        ? 'bg-amber-500 text-black'
-                        : 'bg-white/5 text-slate-200 group-hover:bg-amber-500 group-hover:text-black'
+                        ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
+                        : 'bg-white/5 text-slate-200 group-hover:bg-red-600 group-hover:text-white'
                     }`}
                   >
                     <span>{isSelected ? 'Filtro Activo' : 'Ver Repuestos'}</span>

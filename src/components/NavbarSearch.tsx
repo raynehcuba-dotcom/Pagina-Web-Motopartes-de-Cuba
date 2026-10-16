@@ -147,7 +147,7 @@ export const NavbarSearch: React.FC<NavbarSearchProps> = ({
               ? `Buscar piezas ${activeModel}...`
               : 'Buscar pieza, código o modelo...'
           }
-          className="w-full rounded-lg border border-white/10 bg-[#161921] pl-8 pr-14 py-1.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all font-sans"
+          className="w-full rounded-lg border border-white/10 bg-[#161921] pl-8 pr-14 py-1.5 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-all font-sans"
         />
 
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -177,11 +177,11 @@ export const NavbarSearch: React.FC<NavbarSearchProps> = ({
           {/* Header indicator */}
           <div className="flex items-center justify-between px-3 py-2 bg-[#0c0e13] border-b border-white/10 text-[10px] font-mono">
             <span className="text-slate-400 flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-amber-500" />
+              <Sparkles className="h-3 w-3 text-red-500" />
               <span>Sugerencias en tiempo real</span>
             </span>
             {activeModel !== 'all' && (
-              <span className="rounded bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 text-amber-400 font-bold">
+              <span className="rounded bg-red-600/15 border border-red-500/30 px-1.5 py-0.2 text-red-400 font-bold">
                 Priorizando: {activeModel}
               </span>
             )}
@@ -200,7 +200,7 @@ export const NavbarSearch: React.FC<NavbarSearchProps> = ({
                     onClick={() => handleSelectItem(item)}
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`flex items-center gap-3 p-2.5 cursor-pointer transition-colors ${
-                      isSelected ? 'bg-amber-500/15 text-white' : 'hover:bg-white/5 text-slate-300'
+                      isSelected ? 'bg-red-600/20 text-white' : 'hover:bg-white/5 text-slate-300'
                     }`}
                   >
                     {/* Thumbnail */}
@@ -213,13 +213,13 @@ export const NavbarSearch: React.FC<NavbarSearchProps> = ({
                     {/* Details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 text-[10px] font-mono">
-                        <span className={`font-bold ${isItemFromActiveModel ? 'text-amber-400' : 'text-slate-400'}`}>
+                        <span className={`font-bold ${isItemFromActiveModel ? 'text-red-400' : 'text-slate-400'}`}>
                           {item.model}
                         </span>
                         <span className="text-slate-600">·</span>
                         <span className="text-slate-400 truncate">{item.code}</span>
                         {isItemFromActiveModel && (
-                          <span className="text-[9px] text-amber-500 font-semibold ml-auto hidden sm:inline">
+                          <span className="text-[9px] text-red-500 font-semibold ml-auto hidden sm:inline">
                             ★ Modelo activo
                           </span>
                         )}
@@ -238,7 +238,7 @@ export const NavbarSearch: React.FC<NavbarSearchProps> = ({
                     <div className="text-right shrink-0 font-mono">
                       <div className="text-xs font-bold tabular-nums text-white">
                         {currency === 'CUP' ? (
-                          <span className="text-amber-400">
+                          <span className="text-red-400 font-bold">
                             ${item.priceCUP.toLocaleString('es-ES')}{' '}
                             <span className="text-[9px] text-slate-400">CUP</span>
                           </span>

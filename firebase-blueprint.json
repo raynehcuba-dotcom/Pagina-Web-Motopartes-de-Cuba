@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "Repuesto": {
+      "title": "Repuesto",
+      "description": "Pieza o repuesto de motocicleta con precio, compatibilidad y stock en tiempo real",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 200 },
+        "code": { "type": "string", "maxLength": 50 },
+        "model": { "type": "string", "enum": ["MZ", "GN125", "AX100", "Karpaty", "Universal"] },
+        "modelLabel": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "enum": ["motor", "transmision", "electrico", "carburacion", "frenos", "suspension", "accesorios"] },
+        "categoryLabel": { "type": "string", "maxLength": 100 },
+        "priceCUP": { "type": "number" },
+        "priceUSD": { "type": "number" },
+        "stock": { "type": "string", "enum": ["disponible", "bajo_stock", "encargo"] },
+        "stockCount": { "type": "number" },
+        "origin": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "image": { "type": "string", "maxLength": 500 },
+        "isFeatured": { "type": "boolean" },
+        "compatibility": { "type": "array" },
+        "specs": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "code", "model", "category", "priceCUP", "priceUSD", "stock", "stockCount"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Usuario administrador con permisos de gestión de inventario y catálogo",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "maxLength": 150 },
+        "role": { "type": "string", "enum": ["admin", "superadmin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    },
+    "CustomOrder": {
+      "title": "CustomOrder",
+      "description": "Solicitud de pieza especial o por encargo",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "model": { "type": "string", "maxLength": 100 },
+        "partName": { "type": "string", "maxLength": 200 },
+        "urgency": { "type": "string", "enum": ["baja", "media", "alta"] },
+        "customerName": { "type": "string", "maxLength": 150 },
+        "customerPhone": { "type": "string", "maxLength": 50 },
+        "province": { "type": "string", "maxLength": 100 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pendiente", "cotizado", "completado"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "model", "partName", "customerName", "customerPhone"]
+    }
+  },
+  "firestore": {
+    "/repuestos/{repuestoId}": {
+      "schema": "#/entities/Repuesto",
+      "description": "Colección de repuestos y catálogo con disponibilidad y precios en tiempo real"
+    },
+    "/admins/{adminId}": {
+      "schema": "#/entities/Admin",
+      "description": "Documentos de administradores habilitados para edición de inventario"
+    },
+    "/custom_orders/{orderId}": {
+      "schema": "#/entities/CustomOrder",
+      "description": "Solicitudes de piezas por encargo creadas por clientes"
+    }
+  }
+}
