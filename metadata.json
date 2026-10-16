@@ -1,0 +1,6 @@
+{
+  "name": "Motopartes de Cuba S.R.L",
+  "description": "Comercializadora de piezas y repuestos para motos MZ, GN125, AX100 y Karpaty en Cuba. Catálogo interactivo con pedidos directos vía WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
