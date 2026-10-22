@@ -35,7 +35,7 @@ export const CustomOrderSection: React.FC = () => {
             
             {/* Left Copy */}
             <div className="lg:col-span-6">
-              <div className="inline-flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-mono font-medium text-amber-400 mb-4">
+              <div className="inline-flex items-center gap-2 rounded-md border border-red-500/30 bg-red-950/20 px-3 py-1 text-xs font-mono font-medium text-red-400 mb-4">
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>SERVICIO ESPECIALIZADO DE IMPORTACIÓN</span>
               </div>
@@ -73,10 +73,10 @@ export const CustomOrderSection: React.FC = () => {
               >
                 <div className="flex items-center justify-between pb-3 border-b border-white/10">
                   <div className="flex items-center gap-2 text-xs font-mono font-bold text-white uppercase">
-                    <Wrench className="h-4 w-4 text-amber-500" />
+                    <Wrench className="h-4 w-4 text-red-500" />
                     <span>Formulario de Pedido Especial</span>
                   </div>
-                  <span className="text-[10px] font-mono text-amber-400">Respuesta por WhatsApp</span>
+                  <span className="text-[10px] font-mono text-red-400">Respuesta por WhatsApp</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -87,7 +87,7 @@ export const CustomOrderSection: React.FC = () => {
                     <select
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-[#151921] px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none font-mono"
+                      className="w-full rounded-lg border border-white/10 bg-[#151921] px-3 py-2 text-xs text-white focus:border-red-500 focus:outline-none font-mono"
                     >
                       <option value="MZ ETZ 250 / TS 250">MZ 250 (ETZ / TS)</option>
                       <option value="MZ ETZ 150 / TS 150">MZ 150 (ETZ / TS)</option>
@@ -108,7 +108,7 @@ export const CustomOrderSection: React.FC = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+53 5xxxxxxx"
-                      className="w-full rounded-lg border border-white/10 bg-[#151921] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none font-mono"
+                      className="w-full rounded-lg border border-white/10 bg-[#151921] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none font-mono"
                     />
                   </div>
                 </div>
@@ -123,7 +123,7 @@ export const CustomOrderSection: React.FC = () => {
                     value={partName}
                     onChange={(e) => setPartName(e.target.value)}
                     placeholder="Ej. Embrague completo con campana, juego de rayos reforzados 16 pulg..."
-                    className="w-full rounded-lg border border-white/10 bg-[#151921] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-lg border border-white/10 bg-[#151921] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none"
                   />
                 </div>
 
@@ -136,13 +136,13 @@ export const CustomOrderSection: React.FC = () => {
                     value={yearOrDetails}
                     onChange={(e) => setYearOrDetails(e.target.value)}
                     placeholder="Ej. Medida de muñón, si es encendido de 6V o 12V, o si el motor tiene alguna modificación..."
-                    className="w-full rounded-lg border border-white/10 bg-[#151921] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none resize-none"
+                    className="w-full rounded-lg border border-white/10 bg-[#151921] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 px-4 text-xs font-bold font-mono text-black hover:bg-amber-400 active:scale-95 transition-all shadow-md uppercase tracking-wider"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-600 py-3 px-4 text-xs font-bold font-mono text-white hover:bg-red-500 active:scale-95 transition-all shadow-lg shadow-red-600/30 uppercase tracking-wider"
                 >
                   <Send className="h-4 w-4" />
                   <span>{submitted ? '¡Consulta Enviada!' : 'Consultar Pieza por WhatsApp'}</span>

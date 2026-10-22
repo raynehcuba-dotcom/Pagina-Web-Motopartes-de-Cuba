@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { CartItem, Currency, OrderCustomerInfo } from '../types';
-import { X, Trash2, MessageCircle, ShoppingBag, Truck, MapPin, User, Phone, CheckCircle2 } from 'lucide-react';
+import { CartItem, Currency, OrderCustomerInfo, CompletedOrder } from '../types';
+import { X, Trash2, MessageCircle, ShoppingBag, Truck, MapPin, User, Phone, CheckCircle2, FileDown } from 'lucide-react';
+import { generateOrderPDF } from '../utils/pdfGenerator';
+import { saveCompletedOrder } from '../lib/firebase';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface CartDrawerProps {
   onClearCart: () => void;
   onToggleCurrency: () => void;
   exchangeRate: number;
+  onOrderCompleted?: (order: CompletedOrder) => void;
 }
 
 const PROVINCIAS_CUBA = [
@@ -43,6 +46,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onClearCart,
   onToggleCurrency,
   exchangeRate,
+  onOrderCompleted,
 }) => {
   const [customer, setCustomer] = useState<OrderCustomerInfo>({
     name: '',
@@ -54,6 +58,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   });
 
   const [formError, setFormError] = useState<string | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [pdfSuccess, setPdfSuccess] = useState(false);
+  const [orderRecordedMessage, setOrderRecordedMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -61,7 +68,59 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const totalCUP = items.reduce((sum, item) => sum + item.repuesto.priceCUP * item.quantity, 0);
   const totalUSD = items.reduce((sum, item) => sum + item.repuesto.priceUSD * item.quantity, 0);
 
-  const handleSendWhatsAppOrder = (e: React.FormEvent) => {
+  const createOrderRecord = (orderId?: string): CompletedOrder => {
+    const id = orderId || `MP-${Date.now().toString().slice(-6)}`;
+    return {
+      id,
+      customer,
+      items: items.map((it) => ({
+        repuestoId: it.repuesto.id,
+        name: it.repuesto.name,
+        code: it.repuesto.code,
+        model: it.repuesto.model,
+        priceCUP: it.repuesto.priceCUP,
+        priceUSD: it.repuesto.priceUSD,
+        quantity: it.quantity,
+        image: it.repuesto.image,
+      })),
+      totalCUP,
+      totalUSD,
+      currency,
+      exchangeRate,
+      status: 'completado',
+      createdAt: new Date().toISOString(),
+    };
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    const orderId = `MP-${Date.now().toString().slice(-6)}`;
+    try {
+      generateOrderPDF({
+        items,
+        customer,
+        currency,
+        exchangeRate,
+        orderId,
+      });
+
+      // Save to historical orders in Firestore & LocalStorage
+      const newOrder = createOrderRecord(orderId);
+      saveCompletedOrder(newOrder);
+      if (onOrderCompleted) onOrderCompleted(newOrder);
+
+      setPdfSuccess(true);
+      setOrderRecordedMessage(`¡Cotización guardada en 'Mis Pedidos' como #${orderId}!`);
+      setTimeout(() => setPdfSuccess(false), 3500);
+      setTimeout(() => setOrderRecordedMessage(null), 5000);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleSendWhatsAppOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!customer.name.trim()) {
@@ -74,6 +133,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     }
 
     setFormError(null);
+
+    const orderId = `MP-${Date.now().toString().slice(-6)}`;
+    const newOrder = createOrderRecord(orderId);
+
+    // Save order in Firestore & LocalStorage for 'Mis Pedidos' tracking
+    saveCompletedOrder(newOrder);
+    if (onOrderCompleted) onOrderCompleted(newOrder);
 
     // Format delivery label
     let deliveryLabel = 'Recogida en Almacén (La Habana)';
@@ -93,6 +159,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     const message =
       `🏍️ *PEDIDO DE REPUESTOS - MOTOPARTES DE CUBA S.R.L*\n` +
+      `📦 *Folio de Registro:* ${orderId}\n` +
       `📅 *Fecha:* ${new Date().toLocaleDateString('es-ES')}\n\n` +
       `👤 *DATOS DEL CLIENTE:*\n` +
       `• *Nombre:* ${customer.name}\n` +
@@ -126,7 +193,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-[#0d0f14]">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-600/15 border border-red-500/30 text-red-500">
                 <ShoppingBag className="h-4 w-4" />
               </div>
               <div>
@@ -142,7 +209,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={onToggleCurrency}
-                className="rounded border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-mono text-amber-400 hover:border-amber-500"
+                className="rounded border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-mono text-red-400 hover:border-red-500"
                 title="Cambiar moneda de visualización"
               >
                 Moneda: {currency}
@@ -172,7 +239,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </p>
                 <button
                   onClick={onClose}
-                  className="mt-6 rounded-lg bg-amber-500 px-4 py-2 text-xs font-mono font-bold text-black hover:bg-amber-400 transition-colors"
+                  className="mt-6 rounded-lg bg-red-600 px-4 py-2 text-xs font-mono font-bold text-white hover:bg-red-500 transition-colors shadow-lg shadow-red-600/30"
                 >
                   Ir al Catálogo
                 </button>
@@ -203,7 +270,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       />
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-amber-400">
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-red-400">
                           <span>{it.repuesto.model}</span>
                           <span>·</span>
                           <span className="text-slate-400">{it.repuesto.code}</span>
@@ -213,7 +280,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         </h5>
                         <div className="font-mono tabular-nums text-slate-200 mt-1">
                           {currency === 'CUP' ? (
-                            <span className="text-amber-400 font-bold">
+                            <span className="text-red-400 font-bold">
                               ${(it.repuesto.priceCUP * it.quantity).toLocaleString('es-ES')} CUP
                             </span>
                           ) : (
@@ -257,10 +324,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                 {/* Customer Information Form */}
                 <form id="order-form" onSubmit={handleSendWhatsAppOrder} className="space-y-4 pt-4 border-t border-white/10">
-                  <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase text-amber-400">
+                  <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase text-red-400">
                     <User className="h-3.5 w-3.5" />
                     <span>Datos de Entrega en Cuba</span>
                   </div>
+
+                  {orderRecordedMessage && (
+                    <div className="p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs font-mono flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>{orderRecordedMessage}</span>
+                    </div>
+                  )}
 
                   {formError && (
                     <div className="p-2.5 rounded-lg bg-red-950/60 border border-red-500/40 text-red-200 text-xs font-mono">
@@ -279,7 +353,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         value={customer.name}
                         onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
                         placeholder="Ej. Carlos Valdés"
-                        className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                        className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none"
                       />
                     </div>
 
@@ -293,7 +367,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         value={customer.phone}
                         onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
                         placeholder="+53 5xxxxxxx"
-                        className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none font-mono"
+                        className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none font-mono"
                       />
                     </div>
                   </div>
@@ -306,7 +380,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <select
                         value={customer.province}
                         onChange={(e) => setCustomer({ ...customer, province: e.target.value })}
-                        className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none font-mono"
+                        className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white focus:border-red-500 focus:outline-none font-mono"
                       >
                         {PROVINCIAS_CUBA.map((prov) => (
                           <option key={prov} value={prov}>
@@ -325,7 +399,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         value={customer.municipality}
                         onChange={(e) => setCustomer({ ...customer, municipality: e.target.value })}
                         placeholder="Ej. Plaza, Diez de Octubre..."
-                        className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                        className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -337,7 +411,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <select
                       value={customer.deliveryMethod}
                       onChange={(e) => setCustomer({ ...customer, deliveryMethod: e.target.value as any })}
-                      className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none font-mono"
+                      className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white focus:border-red-500 focus:outline-none font-mono"
                     >
                       <option value="recogida_almacen">Recogida personal en Almacén (La Habana - Gratis)</option>
                       <option value="envio_mensajeria">Mensajería directa a domicilio (La Habana)</option>
@@ -354,7 +428,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       value={customer.notes}
                       onChange={(e) => setCustomer({ ...customer, notes: e.target.value })}
                       placeholder="Ej. Medida de cilindro o si desean pagar por Transfermóvil..."
-                      className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none resize-none"
+                      className="w-full rounded-lg border border-white/10 bg-[#161a22] px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none resize-none"
                     />
                   </div>
                 </form>
@@ -386,18 +460,42 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </div>
 
-              {/* Master WhatsApp Button */}
-              <button
-                type="submit"
-                form="order-form"
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 px-4 text-sm font-bold font-mono text-black hover:bg-emerald-400 active:scale-95 transition-all shadow-lg shadow-emerald-500/25 uppercase tracking-wide"
-              >
-                <MessageCircle className="h-5 w-5" />
-                <span>Enviar Pedido por WhatsApp</span>
-              </button>
+              {/* Actions Stack */}
+              <div className="space-y-2.5">
+                {/* Download PDF Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-950/30 hover:bg-red-900/40 hover:border-red-500 py-3 px-4 text-xs font-bold font-mono text-red-200 active:scale-95 transition-all shadow-md shadow-red-950/50"
+                  title="Descargar cotización oficial en PDF con nombres de piezas, cantidades y costo total"
+                >
+                  {pdfSuccess ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                      <span className="text-emerald-300">¡PDF Generado y Descargado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="h-4 w-4 text-red-400" />
+                      <span>{isGeneratingPDF ? 'Generando PDF...' : 'Descargar Resumen en PDF'}</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Master WhatsApp Button */}
+                <button
+                  type="submit"
+                  form="order-form"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 px-4 text-sm font-bold font-mono text-black hover:bg-emerald-400 active:scale-95 transition-all shadow-lg shadow-emerald-500/25 uppercase tracking-wide"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  <span>Enviar Pedido por WhatsApp</span>
+                </button>
+              </div>
 
               <p className="text-center text-[11px] font-mono text-slate-400">
-                Se abrirá WhatsApp con el resumen listo para enviar a nuestro comercial.
+                Guarda tu cotización en PDF o envíala directamente a nuestro asesor comercial por WhatsApp.
               </p>
 
             </div>

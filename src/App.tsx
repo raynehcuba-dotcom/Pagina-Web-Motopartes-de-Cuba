@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ModelShowcase } from './components/ModelShowcase';
@@ -16,16 +16,28 @@ import { CustomOrderSection } from './components/CustomOrderSection';
 import { WarehouseDeliveryInfo } from './components/WarehouseDeliveryInfo';
 import { Footer } from './components/Footer';
 import { InventoryManagerModal } from './components/InventoryManagerModal';
+import { FavoritesModal } from './components/FavoritesModal';
+import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { MyOrdersModal } from './components/MyOrdersModal';
 import { REPUESTOS } from './data/repuestos';
-import { Repuesto, CartItem, MotorcycleModel, Currency } from './types';
-import { ShoppingBag, Check, MessageCircle, Scale } from 'lucide-react';
+import { Repuesto, CartItem, MotorcycleModel, Currency, CompletedOrder } from './types';
+import { ShoppingBag, Check, MessageCircle, Sparkles, Bell } from 'lucide-react';
 import {
   subscribeToRepuestos,
   seedInitialCatalogIfEmpty,
   testConnection,
   auth,
+  subscribeToUserOrders,
+  getLocalOrders,
+  loginWithGoogle,
 } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import {
+  CatalogNotification,
+  getStoredNotifications,
+  saveNotifications,
+  dispatchRepuestoNotification,
+} from './lib/notifications';
 
 export default function App() {
   // State: Repuestos catalog (initialized with authentic data, updated live from Firestore)
@@ -43,6 +55,70 @@ export default function App() {
       return [];
     }
   });
+
+  // State: Wishlist (Favoritos) with localStorage persistence
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('motopartes_cuba_favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+
+  // State: Theme ('dark' | 'light') with localStorage persistence
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      const saved = localStorage.getItem('motopartes_cuba_theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
+        ? 'light'
+        : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  // Sync theme with DOM and localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('motopartes_cuba_theme', theme);
+    } catch {
+      // ignore
+    }
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      showToast(next === 'light' ? 'Modo Claro activado' : 'Modo Oscuro activado');
+      return next;
+    });
+  };
+
+  // State: Notifications feed
+  const [notifications, setNotifications] = useState<CatalogNotification[]>(() =>
+    getStoredNotifications()
+  );
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [newPartAlert, setNewPartAlert] = useState<{
+    repuesto: Repuesto;
+    title: string;
+  } | null>(null);
+
+  // Ref to track known catalog item IDs for push alert dispatch on new additions
+  const knownRepuestoIdsRef = useRef<Set<string>>(new Set(REPUESTOS.map((r) => r.id)));
+  const isInitialLoadDoneRef = useRef(false);
 
   // State: Active motorcycle model filter
   const [activeModel, setActiveModel] = useState<MotorcycleModel>('all');
@@ -63,6 +139,10 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedRepuesto, setSelectedRepuesto] = useState<Repuesto | null>(null);
 
+  // State: Historical Orders ('Mis Pedidos')
+  const [orders, setOrders] = useState<CompletedOrder[]>(() => getLocalOrders());
+  const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
+
   // State: Compare up to 3 parts
   const [comparedItemIds, setComparedItemIds] = useState<string[]>([]);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
@@ -77,7 +157,10 @@ export default function App() {
     }
   });
 
-  // Real-time Firestore synchronization & boot connection test
+  // Toast notification state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Real-time Firestore synchronization & push notification triggers
   useEffect(() => {
     testConnection()
       .then((connected) => {
@@ -88,8 +171,29 @@ export default function App() {
       })
       .catch(() => setIsDbConnected(false));
 
+    let unsubscribeOrders: (() => void) | undefined;
+
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+      if (user) {
+        // Subscribe to user's real-time orders in Firestore
+        unsubscribeOrders = subscribeToUserOrders(user.uid, (remoteOrders) => {
+          setOrders((prev) => {
+            const local = getLocalOrders();
+            const map = new Map<string, CompletedOrder>();
+            remoteOrders.forEach((o) => map.set(o.id, o));
+            local.forEach((o) => {
+              if (!map.has(o.id)) map.set(o.id, o);
+            });
+            prev.forEach((o) => {
+              if (!map.has(o.id)) map.set(o.id, o);
+            });
+            return Array.from(map.values()).sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+          });
+        });
+      }
     });
 
     const unsubscribeRepuestos = subscribeToRepuestos(
@@ -97,6 +201,29 @@ export default function App() {
         if (liveItems && liveItems.length > 0) {
           setRepuestos(liveItems);
           setIsDbConnected(true);
+
+          // Check if any brand-new repuestos were added since boot
+          if (isInitialLoadDoneRef.current) {
+            const newlyAdded = liveItems.filter(
+              (item) => !knownRepuestoIdsRef.current.has(item.id)
+            );
+
+            if (newlyAdded.length > 0) {
+              newlyAdded.forEach((newItem) => {
+                const notif = dispatchRepuestoNotification(newItem);
+                setNotifications((prev) => [notif, ...prev]);
+                setNewPartAlert({
+                  repuesto: newItem,
+                  title: `¡Nuevo repuesto en almacén: ${newItem.name}!`,
+                });
+              });
+            }
+          } else {
+            isInitialLoadDoneRef.current = true;
+          }
+
+          // Update set of known IDs
+          liveItems.forEach((it) => knownRepuestoIdsRef.current.add(it.id));
         }
       },
       (err) => {
@@ -105,10 +232,67 @@ export default function App() {
     );
 
     return () => {
+      if (unsubscribeOrders) unsubscribeOrders();
       unsubscribeAuth();
       unsubscribeRepuestos();
     };
   }, []);
+
+  // Persist cart
+  useEffect(() => {
+    try {
+      localStorage.setItem('motopartes_cuba_cart', JSON.stringify(cart));
+    } catch {
+      // ignore
+    }
+  }, [cart]);
+
+  // Persist currency
+  useEffect(() => {
+    try {
+      localStorage.setItem('motopartes_cuba_currency', currency);
+    } catch {
+      // ignore
+    }
+  }, [currency]);
+
+  // Toast trigger
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 3500);
+  };
+
+  // Wishlist toggle handler
+  const handleToggleFavorite = (id: string) => {
+    setFavorites((prev) => {
+      const exists = prev.includes(id);
+      const updated = exists ? prev.filter((itemId) => itemId !== id) : [...prev, id];
+      try {
+        localStorage.setItem('motopartes_cuba_favorites', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      const item = repuestos.find((r) => r.id === id);
+      if (exists) {
+        showToast(`"${item?.name || 'Pieza'}" eliminada de Favoritos.`);
+      } else {
+        showToast(`"${item?.name || 'Pieza'}" guardada en Favoritos.`);
+      }
+      return updated;
+    });
+  };
+
+  const handleClearFavorites = () => {
+    setFavorites([]);
+    try {
+      localStorage.removeItem('motopartes_cuba_favorites');
+    } catch {
+      // ignore
+    }
+    showToast('Lista de favoritos vaciada.');
+  };
 
   // Track product view (add to top of recent, keep max 5 unique)
   const trackProductView = (id: string) => {
@@ -161,35 +345,6 @@ export default function App() {
   const handleClearCompare = () => {
     setComparedItemIds([]);
     showToast('Comparador limpiado.');
-  };
-
-  // Toast notification state
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Persist cart
-  useEffect(() => {
-    try {
-      localStorage.setItem('motopartes_cuba_cart', JSON.stringify(cart));
-    } catch {
-      // ignore storage errors
-    }
-  }, [cart]);
-
-  // Persist currency
-  useEffect(() => {
-    try {
-      localStorage.setItem('motopartes_cuba_currency', currency);
-    } catch {
-      // ignore
-    }
-  }, [currency]);
-
-  // Toast trigger
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((prev) => (prev === msg ? null : prev));
-    }, 3500);
   };
 
   // Add to cart
@@ -247,9 +402,10 @@ export default function App() {
     window.open(`https://wa.me/5350000000?text=${text}`, '_blank');
   };
 
-  // Set of IDs in cart for fast lookup
+  // Set of IDs in cart & favorites for fast lookup
   const cartItemIds = new Set(cart.map((it) => it.repuesto.id));
   const comparedItemIdsSet = new Set(comparedItemIds);
+  const favoritesSet = new Set(favorites);
   const totalItemsCount = cart.reduce((sum, it) => sum + it.quantity, 0);
 
   // Resolved compared parts
@@ -258,9 +414,9 @@ export default function App() {
     .filter(Boolean) as Repuesto[];
 
   return (
-    <div className="min-h-screen bg-[#0c0e12] text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black">
+    <div className={`min-h-screen ${theme === 'light' ? 'bg-[#f6f8fa] text-slate-800' : 'bg-[#0c0e12] text-slate-100'} flex flex-col font-sans selection:bg-red-600 selection:text-white transition-colors duration-200`}>
       
-      {/* Top Navbar with Predictive Real-Time Search & DB Manager */}
+      {/* Top Navbar with Predictive Search, FCM Bell, Wishlist, Theme Toggle & DB Manager */}
       <Navbar
         cartCount={totalItemsCount}
         onOpenCart={() => setIsCartOpen(true)}
@@ -272,6 +428,20 @@ export default function App() {
         onSelectRepuesto={handleOpenDetails}
         onOpenInventoryManager={() => setIsInventoryModalOpen(true)}
         isDbConnected={isDbConnected}
+        favoritesCount={favorites.length}
+        onOpenFavorites={() => setIsFavoritesOpen(true)}
+        notificationsCount={notifications.filter((n) => !n.read).length}
+        onOpenNotifications={() => {
+          setIsNotificationsOpen(true);
+          // Mark as read
+          const updated = notifications.map((n) => ({ ...n, read: true }));
+          setNotifications(updated);
+          saveNotifications(updated);
+        }}
+        ordersCount={orders.length}
+        onOpenOrders={() => setIsOrdersModalOpen(true)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Content */}
@@ -280,6 +450,7 @@ export default function App() {
         <Hero
           onSelectModel={setActiveModel}
           onOpenWhatsAppGeneral={handleOpenWhatsAppGeneral}
+          theme={theme}
         />
 
         {/* Model Showcase (MZ, GN125, AX100, Karpaty) */}
@@ -288,7 +459,7 @@ export default function App() {
           onSelectModel={setActiveModel}
         />
 
-        {/* Interactive Catalog with Filters, Search and Comparison */}
+        {/* Interactive Catalog with Filters, Search, Wishlist and Comparison */}
         {(() => {
           const recentRepuestos = recentProductIds
             .map((id) => repuestos.find((r) => r.id === id))
@@ -307,6 +478,8 @@ export default function App() {
               onClearRecent={handleClearRecent}
               onToggleCompare={handleToggleCompare}
               comparedItemIds={comparedItemIdsSet}
+              favorites={favoritesSet}
+              onToggleFavorite={handleToggleFavorite}
             />
           );
         })()}
@@ -323,6 +496,7 @@ export default function App() {
         onSelectModel={setActiveModel}
         onOpenWhatsAppGeneral={handleOpenWhatsAppGeneral}
         onOpenInventoryManager={() => setIsInventoryModalOpen(true)}
+        theme={theme}
       />
 
       {/* Product Detail Modal */}
@@ -334,6 +508,8 @@ export default function App() {
         isInCart={selectedRepuesto ? cartItemIds.has(selectedRepuesto.id) : false}
         onToggleCompare={handleToggleCompare}
         isCompared={selectedRepuesto ? comparedItemIds.includes(selectedRepuesto.id) : false}
+        isFavorite={selectedRepuesto ? favorites.includes(selectedRepuesto.id) : false}
+        onToggleFavorite={handleToggleFavorite}
       />
 
       {/* Side-by-side Product Comparison Modal (up to 3 items) */}
@@ -346,6 +522,33 @@ export default function App() {
         onRemoveCompareItem={handleRemoveCompareItem}
         onClearCompare={handleClearCompare}
         cartItemIds={cartItemIds}
+      />
+
+      {/* Wishlist 'Favoritos' Modal */}
+      <FavoritesModal
+        isOpen={isFavoritesOpen}
+        onClose={() => setIsFavoritesOpen(false)}
+        favorites={favorites}
+        repuestos={repuestos}
+        currency={currency}
+        onAddToCart={handleAddToCart}
+        onToggleFavorite={handleToggleFavorite}
+        onClearFavorites={handleClearFavorites}
+        onOpenDetails={handleOpenDetails}
+        cartItemIds={cartItemIds}
+      />
+
+      {/* FCM & Push Notifications Center Modal */}
+      <NotificationCenterModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        notifications={notifications}
+        repuestos={repuestos}
+        onSelectRepuesto={handleOpenDetails}
+        onClearNotifications={() => {
+          setNotifications([]);
+          saveNotifications([]);
+        }}
       />
 
       {/* Real-time Inventory & Catalog Database Management Modal */}
@@ -376,6 +579,27 @@ export default function App() {
         onClearCart={handleClearCart}
         onToggleCurrency={handleToggleCurrency}
         exchangeRate={exchangeRate}
+        onOrderCompleted={(newOrder) => {
+          setOrders((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)]);
+          showToast(`¡Pedido #${newOrder.id} guardado en 'Mis Pedidos'!`);
+        }}
+      />
+
+      {/* Mis Pedidos Modal (Historical tracking & PDF voucher generator) */}
+      <MyOrdersModal
+        isOpen={isOrdersModalOpen}
+        onClose={() => setIsOrdersModalOpen(false)}
+        orders={orders}
+        currentUser={currentUser}
+        onLogin={async () => {
+          try {
+            await loginWithGoogle();
+            showToast('Sesión iniciada con Google');
+          } catch (err: any) {
+            showToast(`Error al iniciar sesión: ${err.message}`);
+          }
+        }}
+        exchangeRate={exchangeRate}
       />
 
       {/* Floating Quick WhatsApp and Cart Buttons */}
@@ -386,7 +610,7 @@ export default function App() {
         {totalItemsCount > 0 && (
           <button
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-amber-500 text-black px-4 py-3 shadow-2xl font-mono text-xs font-bold hover:bg-amber-400 active:scale-95 transition-all border border-amber-400/40"
+            className="flex items-center gap-2 rounded-full bg-red-600 text-white px-4 py-3 shadow-2xl font-mono text-xs font-bold hover:bg-red-500 active:scale-95 transition-all border border-red-400/40 shadow-red-600/30"
             aria-label="Ver pedido actual"
           >
             <ShoppingBag className="h-4 w-4" />
@@ -404,7 +628,40 @@ export default function App() {
         </button>
       </aside>
 
-      {/* Toast Notification */}
+      {/* Live New Part Push Notification Alert Banner */}
+      {newPartAlert && (
+        <div className="fixed top-20 right-4 sm:right-6 z-50 flex items-center gap-3 rounded-2xl border border-red-500/50 bg-[#161a24]/95 backdrop-blur-md p-4 text-xs font-mono text-white shadow-2xl animate-in slide-in-from-top-4 duration-300 max-w-sm">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white font-bold">
+            <Bell className="h-5 w-5 animate-bounce" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] text-red-400 font-bold uppercase">¡Nueva Pieza en Almacén!</div>
+            <div className="font-semibold text-white truncate text-xs mt-0.5">{newPartAlert.repuesto.name}</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              ${newPartAlert.repuesto.priceCUP.toLocaleString('es-ES')} CUP · {newPartAlert.repuesto.model}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 shrink-0">
+            <button
+              onClick={() => {
+                handleOpenDetails(newPartAlert.repuesto);
+                setNewPartAlert(null);
+              }}
+              className="rounded-lg bg-red-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-red-500 transition-colors"
+            >
+              Ver Pieza
+            </button>
+            <button
+              onClick={() => setNewPartAlert(null)}
+              className="text-[10px] text-slate-400 hover:text-white text-center"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Standard Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 left-6 z-50 flex items-center gap-3 rounded-xl border border-white/20 bg-[#161921] px-4 py-3 text-xs font-mono text-white shadow-2xl animate-in slide-in-from-bottom duration-300">
           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-black">
@@ -413,7 +670,7 @@ export default function App() {
           <span className="truncate max-w-xs">{toastMessage}</span>
           <button
             onClick={() => setIsCartOpen(true)}
-            className="text-amber-400 underline underline-offset-2 ml-2 hover:text-amber-300 font-bold"
+            className="text-red-400 underline underline-offset-2 ml-2 hover:text-red-300 font-bold"
           >
             Ver Pedido
           </button>

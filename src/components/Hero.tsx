@@ -6,9 +6,10 @@ import { Logo } from './Logo';
 interface HeroProps {
   onSelectModel: (model: MotorcycleModel) => void;
   onOpenWhatsAppGeneral: () => void;
+  theme?: 'dark' | 'light';
 }
 
-export const Hero: React.FC<HeroProps> = ({ onSelectModel, onOpenWhatsAppGeneral }) => {
+export const Hero: React.FC<HeroProps> = ({ onSelectModel, onOpenWhatsAppGeneral, theme = 'dark' }) => {
   return (
     <section className="relative overflow-hidden border-b border-white/10 bg-[#0a0c10] pt-8 pb-16 lg:pt-12 lg:pb-20">
       
@@ -23,7 +24,7 @@ export const Hero: React.FC<HeroProps> = ({ onSelectModel, onOpenWhatsAppGeneral
             
             {/* Prominent Official Brand Seal */}
             <div className="mb-5 flex items-center gap-3 bg-[#141720]/80 border border-white/10 rounded-2xl px-4 py-2.5 backdrop-blur-md shadow-xl">
-              <Logo size="md" theme="dark" />
+              <Logo size="md" theme={theme} />
               <div className="border-l border-white/10 pl-3">
                 <div className="text-[10px] font-mono font-bold tracking-widest text-red-400 uppercase">
                   Identidad Oficial Registrada

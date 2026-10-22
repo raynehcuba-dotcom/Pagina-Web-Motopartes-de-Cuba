@@ -47,3 +47,30 @@ export interface OrderCustomerInfo {
   deliveryMethod: 'recogida_almacen' | 'envio_mensajeria' | 'envio_provincial';
   notes: string;
 }
+
+export interface OrderItem {
+  repuestoId: string;
+  name: string;
+  code: string;
+  model: string;
+  priceCUP: number;
+  priceUSD: number;
+  quantity: number;
+  image?: string;
+}
+
+export type OrderStatus = 'completado' | 'procesando' | 'en_camino' | 'entregado';
+
+export interface CompletedOrder {
+  id: string;
+  userId?: string;
+  userEmail?: string;
+  customer: OrderCustomerInfo;
+  items: OrderItem[];
+  totalCUP: number;
+  totalUSD: number;
+  currency: Currency;
+  exchangeRate: number;
+  status: OrderStatus;
+  createdAt: string;
+}

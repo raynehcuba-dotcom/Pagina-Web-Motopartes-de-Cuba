@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Repuesto, Currency } from '../types';
-import { X, ShoppingBag, MessageCircle, Check, Wrench, ShieldCheck, CheckCircle2, Scale } from 'lucide-react';
+import { X, ShoppingBag, MessageCircle, Check, ShieldCheck, CheckCircle2, Scale, Heart } from 'lucide-react';
 
 interface ProductModalProps {
   repuesto: Repuesto | null;
@@ -10,6 +10,8 @@ interface ProductModalProps {
   isInCart: boolean;
   onToggleCompare?: (id: string) => void;
   isCompared?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string) => void;
 }
 
 export const ProductModal: React.FC<ProductModalProps> = ({
@@ -20,6 +22,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   isInCart,
   onToggleCompare,
   isCompared,
+  isFavorite = false,
+  onToggleFavorite,
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
@@ -89,16 +93,33 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 className="h-full w-full object-cover"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded text-xs font-mono font-bold text-amber-400 border border-white/10">
+              <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded text-xs font-mono font-bold text-red-400 border border-white/10">
                 {repuesto.code}
               </div>
+
+              {/* Top right Heart button in modal image */}
+              {onToggleFavorite && (
+                <button
+                  type="button"
+                  onClick={() => onToggleFavorite(repuesto.id)}
+                  className={`absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md border transition-all ${
+                    isFavorite
+                      ? 'bg-red-600 text-white border-red-500 shadow-md shadow-red-600/40'
+                      : 'bg-black/70 text-slate-300 hover:text-red-400 hover:bg-black/90 border-white/15'
+                  }`}
+                  title={isFavorite ? 'Quitar de Favoritos' : 'Guardar en Favoritos'}
+                  aria-label="Favorito"
+                >
+                  <Heart className={`h-4 w-4 ${isFavorite ? 'fill-white stroke-white' : 'stroke-current'}`} />
+                </button>
+              )}
             </div>
 
             {/* Quality & Origin Notice */}
             <div className="mt-4 rounded-xl border border-white/10 bg-[#161a22] p-3 text-xs font-mono text-slate-300">
-              <div className="flex items-center gap-2 text-amber-400 font-semibold mb-1">
+              <div className="flex items-center gap-2 text-red-400 font-semibold mb-1">
                 <ShieldCheck className="h-4 w-4" />
-                <span>Control de Calidad Motopartes</span>
+                <span>Control de Calidad Motopartes S.R.L</span>
               </div>
               <p className="text-slate-400 leading-relaxed text-[11px]">
                 Procedencia: <strong className="text-white">{repuesto.origin}</strong>. Todas las piezas son inspeccionadas físicamente antes de entrega para asegurar tolerancias exactas.
@@ -111,7 +132,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             <div>
               {/* Category & Model */}
               <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-2">
-                <span className="text-amber-400 font-semibold uppercase">{repuesto.model}</span>
+                <span className="text-red-400 font-semibold uppercase">{repuesto.model}</span>
                 <span>·</span>
                 <span>{repuesto.categoryLabel}</span>
               </div>
@@ -128,13 +149,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   <div className="font-mono tabular-nums text-2xl font-extrabold text-white">
                     {currency === 'CUP' ? (
                       <>
-                        <span className="text-amber-400 text-lg">$</span>
+                        <span className="text-red-400 text-lg font-bold">$</span>
                         {repuesto.priceCUP.toLocaleString('es-ES')}{' '}
                         <span className="text-xs text-slate-400 font-normal">CUP</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-emerald-400 text-lg">$</span>
+                        <span className="text-emerald-400 text-lg font-bold">$</span>
                         {repuesto.priceUSD.toFixed(2)}{' '}
                         <span className="text-xs text-slate-400 font-normal">USD</span>
                       </>
@@ -144,7 +165,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
                 <div className="text-right text-xs font-mono text-slate-400">
                   <div>Equivalente:</div>
-                  <div className="text-amber-400 font-semibold">
+                  <div className="text-red-400 font-semibold">
                     {currency === 'CUP' 
                       ? `$${repuesto.priceUSD} USD` 
                       : `$${repuesto.priceCUP.toLocaleString('es-ES')} CUP`}
@@ -224,7 +245,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-mono font-bold uppercase transition-all shadow-lg ${
                       justAdded || isInCart
                         ? 'bg-emerald-500 text-black hover:bg-emerald-400'
-                        : 'bg-amber-500 text-black hover:bg-amber-400 active:scale-95'
+                        : 'bg-red-600 text-white hover:bg-red-500 active:scale-95 shadow-red-600/30'
                     }`}
                   >
                     {justAdded ? (
@@ -249,20 +270,39 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   </button>
                 </div>
 
-                {onToggleCompare && (
-                  <button
-                    type="button"
-                    onClick={() => onToggleCompare(repuesto.id)}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-mono font-medium border transition-colors ${
-                      isCompared
-                        ? 'border-amber-500 bg-amber-500/20 text-amber-400'
-                        : 'border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-amber-500/40'
-                    }`}
-                  >
-                    <Scale className="h-4 w-4" />
-                    <span>{isCompared ? 'Pieza agregada al comparador (Clic para quitar)' : 'Comparar especificaciones con otras piezas (Hasta 3)'}</span>
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {/* Heart Wishlist Button */}
+                  {onToggleFavorite && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleFavorite(repuesto.id)}
+                      className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-mono font-medium border transition-colors ${
+                        isFavorite
+                          ? 'border-red-500 bg-red-600/20 text-red-400'
+                          : 'border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-red-500/40'
+                      }`}
+                    >
+                      <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-400'}`} />
+                      <span>{isFavorite ? 'En Favoritos' : 'Guardar en Favoritos'}</span>
+                    </button>
+                  )}
+
+                  {/* Compare Button */}
+                  {onToggleCompare && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleCompare(repuesto.id)}
+                      className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-xs font-mono font-medium border transition-colors ${
+                        isCompared
+                          ? 'border-red-500 bg-red-600/20 text-red-400'
+                          : 'border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-red-500/40'
+                      }`}
+                    >
+                      <Scale className="h-4 w-4" />
+                      <span>{isCompared ? 'En comparador' : 'Comparar pieza'}</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
             </div>

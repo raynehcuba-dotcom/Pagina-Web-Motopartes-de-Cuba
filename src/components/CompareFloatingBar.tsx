@@ -19,12 +19,12 @@ export const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
 
   return (
     <aside aria-label="Barra de comparación de repuestos" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-2xl animate-in slide-in-from-bottom-6 duration-300">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-[#12151e]/95 backdrop-blur-xl p-3 sm:px-4 sm:py-2.5 shadow-2xl shadow-black/80">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-red-500/40 bg-[#12151e]/95 backdrop-blur-xl p-3 sm:px-4 sm:py-2.5 shadow-2xl shadow-black/80">
         
         {/* Left: Counter & Thumbnails */}
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-black">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-600 text-white font-bold">
               <Scale className="h-4 w-4" />
             </div>
             <div>
@@ -75,7 +75,7 @@ export const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
 
           <button
             onClick={onOpenModal}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-mono font-bold text-black hover:bg-amber-400 active:scale-95 transition-all shadow-md uppercase tracking-wide whitespace-nowrap"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-mono font-bold text-white hover:bg-red-500 active:scale-95 transition-all shadow-md shadow-red-600/30 uppercase tracking-wide whitespace-nowrap"
           >
             <span>Comparar ({comparedRepuestos.length})</span>
             <ArrowRight className="h-3.5 w-3.5" />

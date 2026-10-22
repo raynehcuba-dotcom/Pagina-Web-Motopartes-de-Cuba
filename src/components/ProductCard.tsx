@@ -1,6 +1,6 @@
 import React from 'react';
 import { Repuesto, Currency } from '../types';
-import { ShoppingBag, Eye, Check, AlertCircle, Scale } from 'lucide-react';
+import { ShoppingBag, Eye, Check, AlertCircle, Scale, Heart } from 'lucide-react';
 
 interface ProductCardProps {
   repuesto: Repuesto;
@@ -10,6 +10,8 @@ interface ProductCardProps {
   isInCart: boolean;
   onToggleCompare: (id: string) => void;
   isCompared: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -20,6 +22,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   isInCart,
   onToggleCompare,
   isCompared,
+  isFavorite = false,
+  onToggleFavorite,
 }) => {
   const isOutOfStock = repuesto.stock === 'encargo';
   const isLowStock = repuesto.stock === 'bajo_stock';
@@ -47,13 +51,35 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-[#14171f] via-transparent to-black/20" />
 
         {/* Code & Origin Tag */}
-        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between text-[11px] font-mono">
-          <span className="rounded bg-black/80 backdrop-blur-md px-2 py-0.5 text-red-400 font-bold border border-white/10">
+        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between text-[11px] font-mono pointer-events-none">
+          <span className="rounded bg-black/85 backdrop-blur-md px-2 py-0.5 text-red-400 font-bold border border-white/10 pointer-events-auto">
             {repuesto.code}
           </span>
-          <span className="rounded bg-black/70 backdrop-blur-md px-2 py-0.5 text-slate-300 border border-white/10 text-[10px]">
-            {repuesto.origin}
-          </span>
+          <div className="flex items-center gap-1.5 pointer-events-auto">
+            <span className="rounded bg-black/75 backdrop-blur-md px-2 py-0.5 text-slate-300 border border-white/10 text-[10px]">
+              {repuesto.origin}
+            </span>
+
+            {/* Wishlist Heart Button */}
+            {onToggleFavorite && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite(repuesto.id);
+                }}
+                className={`flex h-7 w-7 items-center justify-center rounded-full backdrop-blur-md border transition-all ${
+                  isFavorite
+                    ? 'bg-red-600/90 text-white border-red-500 shadow-md shadow-red-600/40'
+                    : 'bg-black/70 text-slate-300 hover:text-red-400 hover:bg-black/90 border-white/15'
+                }`}
+                title={isFavorite ? 'Quitar de Favoritos' : 'Guardar en Favoritos'}
+                aria-label={isFavorite ? 'Quitar de Favoritos' : 'Guardar en Favoritos'}
+              >
+                <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-white stroke-white' : 'stroke-current'}`} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Stock Alert if low or special */}

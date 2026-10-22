@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Package,
   Wrench,
+  BarChart3,
 } from 'lucide-react';
 import {
   updateRepuestoStock,
@@ -24,6 +25,7 @@ import {
   isUserAdmin,
 } from '../lib/firebase';
 import { User } from 'firebase/auth';
+import { CatalogStatisticsPanel } from './CatalogStatisticsPanel';
 
 interface InventoryManagerModalProps {
   isOpen: boolean;
@@ -40,6 +42,7 @@ export const InventoryManagerModal: React.FC<InventoryManagerModalProps> = ({
   currentUser,
   onToast,
 }) => {
+  const [activeTab, setActiveTab] = useState<'inventory' | 'stats'>('inventory');
   const [filterModel, setFilterModel] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -237,44 +240,90 @@ export const InventoryManagerModal: React.FC<InventoryManagerModalProps> = ({
           </div>
         </div>
 
-        {/* Subheader Controls */}
-        <div className="bg-[#0f1118] border-b border-white/10 px-6 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2 flex-1 max-w-md">
-            <input
-              type="text"
-              placeholder="Filtrar por pieza o código..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-[#161921] px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-            />
-            <select
-              value={filterModel}
-              onChange={(e) => setFilterModel(e.target.value)}
-              className="rounded-lg border border-white/10 bg-[#161921] px-2.5 py-1.5 text-xs font-mono text-slate-200"
-            >
-              <option value="all">Todos los modelos</option>
-              <option value="MZ">MZ (250/150)</option>
-              <option value="GN125">Suzuki GN125</option>
-              <option value="AX100">Suzuki AX100</option>
-              <option value="Karpaty">Karpaty 50</option>
-              <option value="Universal">Universal</option>
-            </select>
-          </div>
-
+        {/* Subheader: Tabs & Context Controls */}
+        <div className="bg-[#0f1118] border-b border-white/10 px-6 pt-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          {/* Main Navigation Tabs */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="flex items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 px-3 py-1.5 text-xs font-mono font-semibold text-amber-300 hover:bg-amber-500/30 transition-colors"
+              type="button"
+              onClick={() => setActiveTab('inventory')}
+              className={`flex items-center gap-2 pb-3 px-3 text-xs font-mono font-bold border-b-2 transition-all ${
+                activeTab === 'inventory'
+                  ? 'border-amber-500 text-amber-400'
+                  : 'border-transparent text-slate-400 hover:text-white'
+              }`}
             >
-              <Plus className="h-3.5 w-3.5" />
-              <span>{showAddForm ? 'Cerrar formulario' : 'Añadir Nueva Pieza'}</span>
+              <Package className="h-4 w-4" />
+              <span>Gestión de Inventario ({repuestos.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('stats')}
+              className={`flex items-center gap-2 pb-3 px-3 text-xs font-mono font-bold border-b-2 transition-all ${
+                activeTab === 'stats'
+                  ? 'border-red-500 text-red-400'
+                  : 'border-transparent text-slate-400 hover:text-white'
+              }`}
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Estadísticas del Catálogo</span>
+              <span className="rounded bg-red-600/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 text-[10px]">
+                Recharts Live
+              </span>
             </button>
           </div>
+
+          {activeTab === 'inventory' && (
+            <div className="flex items-center gap-2 pb-2">
+              <button
+                type="button"
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="flex items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 px-3 py-1.5 text-xs font-mono font-semibold text-amber-300 hover:bg-amber-500/30 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>{showAddForm ? 'Cerrar formulario' : 'Añadir Nueva Pieza'}</span>
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Secondary Filter Bar only for Inventory Tab */}
+        {activeTab === 'inventory' && (
+          <div className="bg-[#12151d] border-b border-white/10 px-6 py-2.5 flex items-center justify-between gap-3 shrink-0">
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+              <input
+                type="text"
+                placeholder="Filtrar por pieza o código..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full rounded-lg border border-white/10 bg-[#161921] px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+              />
+              <select
+                value={filterModel}
+                onChange={(e) => setFilterModel(e.target.value)}
+                className="rounded-lg border border-white/10 bg-[#161921] px-2.5 py-1.5 text-xs font-mono text-slate-200"
+              >
+                <option value="all">Todos los modelos</option>
+                <option value="MZ">MZ (250/150)</option>
+                <option value="GN125">Suzuki GN125</option>
+                <option value="AX100">Suzuki AX100</option>
+                <option value="Karpaty">Karpaty 50</option>
+                <option value="Universal">Universal</option>
+              </select>
+            </div>
+            <div className="text-[11px] font-mono text-slate-400 hidden sm:block">
+              {filtered.length} {filtered.length === 1 ? 'pieza listada' : 'piezas listadas'}
+            </div>
+          </div>
+        )}
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Add New Part Drawer/Panel */}
+          {activeTab === 'stats' ? (
+            <CatalogStatisticsPanel repuestos={repuestos} />
+          ) : (
+            <>
+              {/* Add New Part Drawer/Panel */}
           {showAddForm && (
             <form
               onSubmit={handleCreatePart}
@@ -548,7 +597,9 @@ export const InventoryManagerModal: React.FC<InventoryManagerModalProps> = ({
               </tbody>
             </table>
           </div>
-        </div>
+        </>
+      )}
+    </div>
 
         {/* Footer */}
         <div className="border-t border-white/10 bg-[#0d0f14] px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-400 shrink-0">

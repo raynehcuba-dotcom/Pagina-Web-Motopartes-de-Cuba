@@ -54,6 +54,25 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "model", "partName", "customerName", "customerPhone"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Pedido confirmado por el cliente para seguimiento histórico y comprobantes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userEmail": { "type": "string", "maxLength": 150 },
+        "customer": { "type": "object" },
+        "items": { "type": "array" },
+        "totalCUP": { "type": "number" },
+        "totalUSD": { "type": "number" },
+        "currency": { "type": "string", "enum": ["CUP", "USD"] },
+        "exchangeRate": { "type": "number" },
+        "status": { "type": "string", "enum": ["completado", "procesando", "en_camino", "entregado"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "customer", "items", "totalCUP", "totalUSD", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -68,6 +87,10 @@
     "/custom_orders/{orderId}": {
       "schema": "#/entities/CustomOrder",
       "description": "Solicitudes de piezas por encargo creadas por clientes"
+    },
+    "/orders/{orderId}": {
+      "schema": "#/entities/Order",
+      "description": "Historial de pedidos completados por clientes para consulta y trazabilidad de compras"
     }
   }
 }

@@ -43,6 +43,15 @@ service cloud.firestore {
              data.customerPhone is string && data.customerPhone.size() > 0 && data.customerPhone.size() <= 50;
     }
 
+    function isValidOrder(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.totalCUP is number && data.totalCUP >= 0 &&
+             data.totalUSD is number && data.totalUSD >= 0 &&
+             data.status in ['completado', 'procesando', 'en_camino', 'entregado'] &&
+             data.items is list && data.items.size() > 0 && data.items.size() <= 50 &&
+             data.customer is map;
+    }
+
     // Catalog collection: public read for store customers, admin write
     match /repuestos/{repuestoId} {
       allow read: if true;
@@ -62,6 +71,15 @@ service cloud.firestore {
     match /custom_orders/{orderId} {
       allow create: if isValidId(orderId) && isValidCustomOrder(request.resource.data);
       allow read, update, delete: if isAdmin();
+    }
+
+    // Historical customer orders: tracking completed purchases by current user
+    match /orders/{orderId} {
+      allow create: if isValidId(orderId) && isValidOrder(request.resource.data) &&
+                    (!('userId' in request.resource.data) || (isSignedIn() && request.resource.data.userId == request.auth.uid));
+      allow get: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow list: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow update, delete: if isAdmin();
     }
   }
 }

@@ -17,9 +17,11 @@ import {
   deleteDoc,
   onSnapshot,
   getDocFromServer,
+  query,
+  where,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { Repuesto } from '../types';
+import { Repuesto, CompletedOrder } from '../types';
 import { REPUESTOS } from '../data/repuestos';
 
 const app = initializeApp(firebaseConfig);
@@ -239,4 +241,83 @@ export async function logoutUser(): Promise<void> {
 export function isUserAdmin(user: User | null): boolean {
   if (!user || !user.email) return false;
   return ADMIN_EMAILS.includes(user.email.toLowerCase());
+}
+
+/**
+ * Historical Orders Persistence & Management
+ */
+const LOCAL_ORDERS_KEY = 'motopartes_cuba_local_orders';
+
+export function getLocalOrders(): CompletedOrder[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_ORDERS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalOrder(order: CompletedOrder): void {
+  try {
+    const existing = getLocalOrders();
+    const updated = [order, ...existing.filter((o) => o.id !== order.id)];
+    localStorage.setItem(LOCAL_ORDERS_KEY, JSON.stringify(updated));
+  } catch (err) {
+    console.warn('Failed to cache order locally:', err);
+  }
+}
+
+/**
+ * Save a completed order to Firestore and local storage
+ */
+export async function saveCompletedOrder(order: CompletedOrder): Promise<string> {
+  const path = `orders/${order.id}`;
+  
+  // Attach current auth identity if logged in
+  const payload: CompletedOrder = {
+    ...order,
+    userId: auth.currentUser?.uid || order.userId,
+    userEmail: auth.currentUser?.email || order.userEmail,
+  };
+
+  // Always cache locally first so user gets instant confirmation
+  saveLocalOrder(payload);
+
+  try {
+    await setDoc(doc(db, 'orders', order.id), payload);
+    return order.id;
+  } catch (error) {
+    console.warn('Could not persist order to Firestore (saved locally):', error);
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * Real-time listener for current user's historical orders
+ */
+export function subscribeToUserOrders(
+  userId: string,
+  onUpdate: (orders: CompletedOrder[]) => void,
+  onError?: (err: Error) => void
+): () => void {
+  const path = 'orders';
+  const ordersRef = collection(db, path);
+  const q = query(ordersRef, where('userId', '==', userId));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const orders: CompletedOrder[] = [];
+      snapshot.forEach((docSnap) => {
+        orders.push(docSnap.data() as CompletedOrder);
+      });
+      // Sort newest first
+      orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      onUpdate(orders);
+    },
+    (error) => {
+      if (onError) onError(error);
+      handleFirestoreError(error, OperationType.LIST, path);
+    }
+  );
 }

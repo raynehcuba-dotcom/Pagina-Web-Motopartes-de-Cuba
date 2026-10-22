@@ -6,12 +6,14 @@ interface FooterProps {
   onSelectModel: (model: MotorcycleModel) => void;
   onOpenWhatsAppGeneral: () => void;
   onOpenInventoryManager?: () => void;
+  theme?: 'dark' | 'light';
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onSelectModel,
   onOpenWhatsAppGeneral,
   onOpenInventoryManager,
+  theme = 'dark',
 }) => {
   return (
     <footer id="contacto" className="border-t border-white/10 bg-[#07080b] text-slate-400 text-xs">
@@ -22,7 +24,7 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Brand & Description (Col 1 & 2) */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex flex-col items-start gap-3">
-              <Logo size="lg" theme="dark" />
+              <Logo size="lg" theme={theme} />
               <div className="inline-flex items-center gap-1.5 rounded-md bg-red-600/15 border border-red-500/30 px-2.5 py-0.5 text-[10px] font-mono text-red-400 font-bold">
                 <span>MIPYME OFICIAL · LA HABANA, CUBA</span>
               </div>
